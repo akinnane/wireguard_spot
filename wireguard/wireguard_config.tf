@@ -54,7 +54,7 @@ data "template_file" "client_conf" {
 
 resource "local_file" "client_conf" {
   content  = data.template_file.client_conf.rendered
-  filename = "../wg0.conf"
+  filename = "wg0.conf"
 }
 
 output "run_this" {
