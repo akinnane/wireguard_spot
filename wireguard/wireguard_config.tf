@@ -1,32 +1,40 @@
 resource "null_resource" "keys_server" {
+  triggers = {
+    build_number = "${timestamp()}"
+  }
   provisioner "local-exec" {
-    command = "mkdir .tmp; cd .tmp; wg genkey | tee server_privatekey | wg pubkey > server_publickey"
+    command = "wg genkey | tee server_privatekey | wg pubkey > server_publickey"
+    working_dir = ".tmp"
   }
 }
 
 resource "null_resource" "keys_client" {
+  triggers = {
+    build_number = "${timestamp()}"
+  }
   provisioner "local-exec" {
-    command = "mkdir .tmp; cd .tmp; wg genkey | tee client_privatekey | wg pubkey > client_publickey"
+    command = "wg genkey | tee client_privatekey | wg pubkey > client_publickey"
+    working_dir = ".tmp"
   }
 }
 
 data "local_file" "server_private_key" {
-  depends_on = ["null_resource.keys_server"]
+  depends_on = [null_resource.keys_server]
   filename   = "./.tmp/server_privatekey"
 }
 
 data "local_file" "server_public_key" {
-  depends_on = ["null_resource.keys_server"]
+  depends_on = [null_resource.keys_server]
   filename   = "./.tmp/server_publickey"
 }
 
 data "local_file" "client_private_key" {
-  depends_on = ["null_resource.keys_client"]
+  depends_on = [null_resource.keys_client]
   filename   = "./.tmp/client_privatekey"
 }
 
 data "local_file" "client_public_key" {
-  depends_on = ["null_resource.keys_client"]
+  depends_on = [null_resource.keys_client]
   filename   = "./.tmp/client_publickey"
 }
 

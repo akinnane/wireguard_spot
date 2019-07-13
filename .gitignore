@@ -3,3 +3,4 @@ wg0.conf
 .terraform
 *tfstate
 *tfstate*
+.tmp/*
