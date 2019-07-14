@@ -2,11 +2,14 @@ provider "aws" {}
 
 resource "aws_default_vpc" "vpc" {}
 
-
 resource "aws_security_group" "sg" {
   name        = "sg"
   description = "sg"
   vpc_id      = aws_default_vpc.vpc.id
+}
+
+data "http" "myip" {
+  url = "http://ifconfig.me"
 }
 
 resource "aws_security_group_rule" "ingress_22" {
@@ -26,7 +29,7 @@ resource "aws_security_group_rule" "ingress_443" {
   to_port   = 443
   protocol  = "udp"
 
-  cidr_blocks       = ["${data.http.myip.body}/32"]
+  cidr_blocks       = ["0.0.0.0/32"]
   security_group_id = aws_security_group.sg.id
 }
 
@@ -62,7 +65,6 @@ resource "aws_key_pair" "deployer" {
   public_key = var.ssh_key
 }
 
-
 resource "aws_spot_instance_request" "wireguard" {
   ami                  = data.aws_ami.ubuntu.id
   instance_type        = "t3.nano"
@@ -71,7 +73,15 @@ resource "aws_spot_instance_request" "wireguard" {
   key_name             = "gkey"
   security_groups      = [aws_security_group.sg.name]
 
-  user_data = data.template_file.user_data.rendered
+  # user_data = data.template_file.user_data.rendered
+  user_data = templatefile(
+    "${path.module}/init.sh",
+    {
+      server_private_key = data.local_file.server_private_key.content
+      client_public_key  = data.local_file.client_public_key
+      peers              = var.peers
+    }
+  )
   tags = {
     Name = "wireguard"
   }

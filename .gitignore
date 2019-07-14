@@ -4,3 +4,4 @@ wg0.conf
 *tfstate
 *tfstate*
 .tmp/*
+wg*.conf

@@ -21,11 +21,12 @@ PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEP
 PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT; iptables -t nat -A POSTROUTING -o ens5 -j MASQUERADE
 SaveConfig = true
 
-# Add extra peers here
+%{ for peer in range(0, peers) ~}
 [Peer]
-PublicKey = ${client_public_key}
-AllowedIPs = 10.200.200.2/32
+AllowedIps = 10.200.200.${peer + 2}/32
 PersistentKeepalive = 25
+PublicKey = ${client_public_key[peer].content}
+%{ endfor ~}
 EF
 
 systemctl enable wg-quick@wg0
